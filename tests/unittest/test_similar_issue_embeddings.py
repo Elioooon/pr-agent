@@ -103,8 +103,11 @@ def test_the_client_is_reused_across_calls(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_pinecone_query_import_is_available_in_run(monkeypatch):
+    queried = []
+
     class FakeIndex:
         def query(self, *args, **kwargs):
+            queried.append(kwargs)
             return SimpleNamespace(to_dict=lambda: {"matches": []})
 
     monkeypatch.setitem(sys.modules, "pinecone", SimpleNamespace(Index=lambda **kwargs: FakeIndex()))
@@ -130,3 +133,4 @@ async def test_pinecone_query_import_is_available_in_run(monkeypatch):
     )
 
     assert await tool.run() is None
+    assert queried, "run() never entered the pinecone branch"
